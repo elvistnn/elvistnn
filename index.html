@@ -123,7 +123,7 @@ body{font-family:'Sora',sans-serif;background:#f0f4f8;min-height:100vh;color:#1a
     <div class="fg"><label>Senha</label><input type="password" id="loginPass" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <button class="btn-login" onclick="doLogin()">Entrar</button>
     <div class="login-error" id="loginError">Usuário ou senha incorretos</div>
-    <p style="font-size:11px;color:#9ba8bb;text-align:center;margin-top:1.5rem">Admin: admin / admin123 &nbsp;|&nbsp; Supervisores: super1..super25 / 123456</p>
+    <div style="text-align:center;margin-top:1.5rem"><button class="btn-cancel" onclick="openRegister()">Criar cadastro</button></div>
   </div>
 </div>
 
@@ -156,12 +156,48 @@ body{font-family:'Sora',sans-serif;background:#f0f4f8;min-height:100vh;color:#1a
 </div>
 </div>
 
+
+<div id="registerModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">Criar nova conta</div>
+    <div class="mf"><label>Nome completo</label><input type="text" class="ifield" id="registerName" /></div>
+    <div class="mf"><label>E-mail</label><input type="email" class="ifield" id="registerEmail" /></div>
+    <div class="mf"><label>Senha</label><input type="password" class="ifield" id="registerPass" /></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="registerUser()">Cadastrar</button>
+      <button class="btn-cancel" onclick="closeRegister()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="adminRegisterModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">Cadastrar usuário</div>
+    <div class="mf"><label>Nome</label><input type="text" class="ifield" id="adminNewName" /></div>
+    <div class="mf"><label>E-mail</label><input type="email" class="ifield" id="adminNewEmail" /></div>
+    <div class="mf"><label>Senha</label><input type="password" class="ifield" id="adminNewPass" /></div>
+    <div class="mf">
+      <label>Perfil</label>
+      <select class="ifield" id="adminNewRole">
+        <option value="user">Supervisor</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="createUserByAdmin()">Salvar</button>
+      <button class="btn-cancel" onclick="closeAdminRegister()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { getDatabase, ref, set, get, push, remove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -179,6 +215,7 @@ window.auth = getAuth(app);
 window.db = getDatabase(app);
 window.firebaseFunctions = {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   ref,
   set,
@@ -330,6 +367,54 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
+
+
+window.openRegister=function(){
+  document.getElementById('registerModal').classList.remove('hidden');
+};
+
+window.closeRegister=function(){
+  document.getElementById('registerModal').classList.add('hidden');
+};
+
+async function registerUser(){
+  const name=document.getElementById('registerName').value.trim();
+  const email=document.getElementById('registerEmail').value.trim();
+  const pass=document.getElementById('registerPass').value.trim();
+
+  if(!name || !email || !pass){
+    showToast('Preencha todos os campos');
+    return;
+  }
+
+  try{
+    const userCredential =
+      await window.firebaseFunctions.createUserWithEmailAndPassword(
+        window.auth,
+        email,
+        pass
+      );
+
+    const uid = userCredential.user.uid;
+    const userKey = email.split('@')[0];
+
+    await window.firebaseFunctions.set(
+      window.firebaseFunctions.ref(window.db,'users/'+userKey),
+      {
+        uid: uid,
+        name: name,
+        role: 'user',
+        email: email
+      }
+    );
+
+    closeRegister();
+    showToast('Cadastro criado com sucesso! Faça login.');
+  }catch(error){
+    showToast('Erro ao criar cadastro');
+  }
+}
+
 
 async function doLogin(){
   const email = document.getElementById('loginUser').value.trim();
@@ -650,10 +735,64 @@ function renderAdminVisits(c){
   </div>`;
 }
 
+
+window.openAdminRegister=function(){
+  document.getElementById('adminRegisterModal').classList.remove('hidden');
+};
+
+window.closeAdminRegister=function(){
+  document.getElementById('adminRegisterModal').classList.add('hidden');
+};
+
+async function createUserByAdmin(){
+  const name=document.getElementById('adminNewName').value.trim();
+  const email=document.getElementById('adminNewEmail').value.trim();
+  const pass=document.getElementById('adminNewPass').value.trim();
+  const role=document.getElementById('adminNewRole').value;
+
+  if(!name || !email || !pass){
+    showToast('Preencha todos os campos');
+    return;
+  }
+
+  try{
+    const userCredential =
+      await window.firebaseFunctions.createUserWithEmailAndPassword(
+        window.auth,
+        email,
+        pass
+      );
+
+    const uid = userCredential.user.uid;
+    const userKey = email.split('@')[0];
+
+    await window.firebaseFunctions.set(
+      window.firebaseFunctions.ref(window.db,'users/'+userKey),
+      {
+        uid,
+        name,
+        role,
+        email
+      }
+    );
+
+    USERS[userKey] = {uid,name,role,email};
+    closeAdminRegister();
+    renderUsersBody();
+    showToast('Usuário criado com sucesso');
+  }catch(error){
+    showToast('Erro ao criar usuário');
+  }
+}
+
+
 /* ---- USERS ---- */
 function renderUsers(c){
   c.innerHTML=`<div class="card">
-    <div class="card-title">Usuários do sistema</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+<div class="card-title" style="margin-bottom:0">Usuários do sistema</div>
+<button class="btn-primary" onclick="openAdminRegister()">Novo usuário</button>
+</div>
     <div style="overflow-x:auto"><table class="user-table">
       <thead><tr><th>Login</th><th>Nome</th><th>Perfil</th><th>Visitas</th><th style="text-align:right">Ações</th></tr></thead>
       <tbody id="usersBody"></tbody>
