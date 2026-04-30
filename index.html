@@ -158,6 +158,36 @@ body{font-family:'Sora',sans-serif;background:#f0f4f8;min-height:100vh;color:#1a
 
 <div class="toast" id="toast"></div>
 
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getDatabase, ref, set, get, push, remove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBlCGMKqmcNEEH33wzCxXsS1NFqZN8Dcxs",
+  authDomain: "presencaescolar-2393c.firebaseapp.com",
+  databaseURL: "https://presencaescolar-2393c-default-rtdb.firebaseio.com",
+  projectId: "presencaescolar-2393c",
+  storageBucket: "presencaescolar-2393c.firebasestorage.app",
+  messagingSenderId: "568423104618",
+  appId: "1:568423104618:web:2e448119cf6b5317ff4a13"
+};
+
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getDatabase(app);
+window.firebaseFunctions = {
+  signInWithEmailAndPassword,
+  signOut,
+  ref,
+  set,
+  get,
+  push,
+  remove
+};
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const SCHOOLS=[
@@ -239,12 +269,12 @@ function defaultUsers(){
   for(let i=1;i<=25;i++) u[`super${i}`]={pass:'123456',name:`Supervisor ${i}`,role:'user'};
   return u;
 }
-let USERS=JSON.parse(localStorage.getItem('peUsers3')||'null')||defaultUsers();
+let USERS = {};
 function saveUsers(){localStorage.setItem('peUsers3',JSON.stringify(USERS))}
 
 let state={
   currentUser:null,
-  visits:JSON.parse(localStorage.getItem('peVisits3')||'[]'),
+  visits:[],
   view:'dashboard',
   calYear:new Date().getFullYear(),
   calMonth:new Date().getMonth(),
@@ -254,7 +284,46 @@ let state={
   schoolSearch:'',
   regSearch:''
 };
-function saveVisits(){localStorage.setItem('peVisits3',JSON.stringify(state.visits))}
+async function saveVisits(){
+  await window.firebaseFunctions.set(
+    window.firebaseFunctions.ref(window.db,'visits'),
+    state.visits
+  );
+}
+
+
+async function loadUserData(){
+  const snapshot = await window.firebaseFunctions.get(
+    window.firebaseFunctions.ref(window.db,'users')
+  );
+
+  if(snapshot.exists()){
+    USERS = snapshot.val();
+  }
+
+  const current = Object.values(USERS).find(
+    u => u.uid === state.currentUser
+  );
+
+  if(current){
+    document.getElementById('headerUser').textContent = current.name;
+    document.getElementById('headerRole').textContent =
+      current.role === 'admin' ? 'Administrador' : 'Supervisor';
+  }
+
+  buildNav();
+  renderView('dashboard');
+}
+
+async function loadVisits(){
+  const snapshot = await window.firebaseFunctions.get(
+    window.firebaseFunctions.ref(window.db,'visits')
+  );
+
+  if(snapshot.exists()){
+    state.visits = Object.values(snapshot.val());
+  }
+}
 
 function showToast(msg){
   const t=document.getElementById('toast');
@@ -262,26 +331,37 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-function doLogin(){
-  const u=document.getElementById('loginUser').value.trim();
-  const p=document.getElementById('loginPass').value;
-  const err=document.getElementById('loginError');
-  if(USERS[u]&&USERS[u].pass===p){
-    state.currentUser=u;
+async function doLogin(){
+  const email = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+
+  try{
+    const userCredential =
+      await window.firebaseFunctions.signInWithEmailAndPassword(
+        window.auth,
+        email,
+        pass
+      );
+
+    state.currentUser = userCredential.user.uid;
+
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('headerUser').textContent=USERS[u].name;
-    document.getElementById('headerRole').textContent=USERS[u].role==='admin'?'Administrador':'Supervisor';
-    buildNav();renderView('dashboard');
-  } else {
-    err.style.display='block';setTimeout(()=>err.style.display='none',3000);
+
+    await loadUserData();
+    await loadVisits();
+
+  }catch(error){
+    const err=document.getElementById('loginError');
+    err.style.display='block';
+    setTimeout(()=>err.style.display='none',3000);
   }
 }
-function doLogout(){
+async function doLogout(){
+  await window.firebaseFunctions.signOut(window.auth);
   state.currentUser=null;
   document.getElementById('mainApp').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';
 }
 
 function buildNav(){
