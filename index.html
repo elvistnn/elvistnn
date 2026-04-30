@@ -123,7 +123,7 @@ body{font-family:'Sora',sans-serif;background:#f0f4f8;min-height:100vh;color:#1a
     <div class="fg"><label>Senha</label><input type="password" id="loginPass" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')doLogin()" /></div>
     <button class="btn-login" onclick="doLogin()">Entrar</button>
     <div class="login-error" id="loginError">Usuário ou senha incorretos</div>
-    <p style="font-size:11px;color:#9ba8bb;text-align:center;margin-top:1.5rem">Acesso restrito para usuários autorizados</p>
+    <p style="font-size:11px;color:#9ba8bb;text-align:center;margin-top:1.5rem">Acesso restrito a usuários autorizados</p>
   </div>
 </div>
 
@@ -270,7 +270,12 @@ function defaultUsers(){
   return u;
 }
 let USERS = {};
-function saveUsers(){}
+async function saveUsers(){
+  await window.firebaseFunctions.set(
+    window.firebaseFunctions.ref(window.db,'users'),
+    USERS
+  );
+}
 
 let state={
   currentUser:null,
@@ -331,33 +336,49 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 
+
 async function doLogin(){
-  const email = document.getElementById('loginUser').value.trim();
+  const login = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
 
   try{
-    const userCredential =
-      await window.firebaseFunctions.signInWithEmailAndPassword(
-        window.auth,
-        email,
-        pass
+    // Admin via Firebase Auth (email)
+    if(login.includes('@')){
+      const userCredential =
+        await window.firebaseFunctions.signInWithEmailAndPassword(
+          window.auth,
+          login,
+          pass
+        );
+
+      const snapshot = await window.firebaseFunctions.get(
+        window.firebaseFunctions.ref(window.db,'users')
       );
 
-    const snapshot = await window.firebaseFunctions.get(
-      window.firebaseFunctions.ref(window.db,'users')
-    );
+      if(snapshot.exists()) USERS = snapshot.val();
 
-    if(snapshot.exists()){
-      USERS = snapshot.val();
+      const uid = userCredential.user.uid;
+      const userKey = Object.keys(USERS).find(
+        key => USERS[key].uid === uid
+      );
+
+      state.currentUser = userKey;
+    }else{
+      // Supervisor via banco (login/senha interno)
+      const snapshot = await window.firebaseFunctions.get(
+        window.firebaseFunctions.ref(window.db,'users')
+      );
+
+      if(snapshot.exists()) USERS = snapshot.val();
+
+      const found = Object.keys(USERS).find(
+        key => key === login && USERS[key].pass === pass
+      );
+
+      if(!found) throw new Error('invalid-login');
+
+      state.currentUser = found;
     }
-
-    const uid = userCredential.user.uid;
-
-    const userKey = Object.keys(USERS).find(
-      key => USERS[key].uid === uid
-    );
-
-    state.currentUser = userKey;
 
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
@@ -371,6 +392,7 @@ async function doLogin(){
     setTimeout(()=>err.style.display='none',3000);
   }
 }
+
 async function doLogout(){
   await window.firebaseFunctions.signOut(window.auth);
   state.currentUser=null;
@@ -706,14 +728,7 @@ window.saveUserEdit=function(){
     USERS[oldKey]=userData;
     state.visits=state.visits.map(v=>v.user===oldKey?{...v,userName:newName}:v);
   }
-  saveVisits();
-  window.firebaseFunctions.set(
-    window.firebaseFunctions.ref(window.db,'users'),
-    USERS
-  );
-  closeModal();
-  showToast('Usuário atualizado!');
-  renderUsersBody();
+  saveVisits();saveUsers();closeModal();showToast('Usuário atualizado!');renderUsersBody();
 };
 
 /* ---- REPORT ---- */
