@@ -1,0 +1,662 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:#f0f4f8;min-height:100vh;color:#1a2332}
+.app{display:flex;flex-direction:column;min-height:100vh}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;background:#0f2548}
+.login-card{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px}
+.login-logo{text-align:center;margin-bottom:2rem}
+.login-logo .icon{width:60px;height:60px;background:#1e4d8c;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
+.login-logo h1{font-size:20px;font-weight:600;color:#1a2332}
+.login-logo p{font-size:13px;color:#6b7a93;margin-top:4px}
+.fg{margin-bottom:1.2rem}
+.fg label{display:block;font-size:12px;font-weight:500;color:#6b7a93;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.fg input{width:100%;padding:11px 14px;border:1.5px solid #dde3ed;border-radius:10px;font-family:inherit;font-size:14px;color:#1a2332;outline:none;transition:border-color .2s;background:#fff}
+.fg input:focus{border-color:#1e4d8c}
+.btn-login{width:100%;padding:13px;background:#1e4d8c;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.login-error{color:#d63031;font-size:13px;text-align:center;margin-top:10px;display:none}
+.header{background:#1e4d8c;color:#fff;padding:0 1.25rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-logo{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.header-title{font-size:15px;font-weight:600}
+.header-user{font-size:12px;opacity:.75}
+.badge-role{background:rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit}
+.nav{background:#fff;border-bottom:1px solid #dde3ed;display:flex;overflow-x:auto;padding:0 1rem}
+.nav-btn{padding:14px 18px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:500;color:#6b7a93;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .2s}
+.nav-btn.active{color:#1e4d8c;border-bottom-color:#1e4d8c}
+.main{flex:1;padding:1.25rem;max-width:960px;margin:0 auto;width:100%}
+.card{background:#fff;border:1px solid #dde3ed;border-radius:16px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:15px;font-weight:600;margin-bottom:1rem}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1rem}
+.stat-card{background:#f5f8ff;border-radius:12px;padding:1rem;text-align:center}
+.stat-num{font-size:28px;font-weight:600;color:#1e4d8c}
+.stat-label{font-size:12px;color:#6b7a93;margin-top:4px}
+.ifield{width:100%;padding:11px 14px;border:1.5px solid #dde3ed;border-radius:10px;font-family:inherit;font-size:14px;color:#1a2332;outline:none;background:#fff}
+.ifield:focus{border-color:#1e4d8c}
+.btn-primary{background:#1e4d8c;color:#fff;border:none;border-radius:10px;padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.btn-success{background:#1a7a4a;color:#fff;border:none;border-radius:10px;padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.btn-danger{background:#d63031;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:12px;cursor:pointer}
+.btn-edit{background:#1e4d8c;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:12px;cursor:pointer}
+.btn-cancel{background:#f0f4f8;color:#1a2332;border:none;border-radius:10px;padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.btn-download{background:#1a7a4a;color:#fff;border:none;border-radius:10px;padding:11px 22px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+/* SEARCH */
+.search-box{position:relative;margin-bottom:10px}
+.search-box input{padding-left:36px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ba8bb;font-size:15px;pointer-events:none}
+/* SCHOOL LIST */
+.school-list{max-height:320px;overflow-y:auto;border:1.5px solid #dde3ed;border-radius:12px}
+.school-row{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f4f8;transition:background .15s}
+.school-row:last-child{border-bottom:none}
+.school-row:hover{background:#f5f8ff}
+.school-row.selected{background:#e8f0fb}
+.school-row .s-code{font-size:11px;color:#9ba8bb;font-family:monospace;min-width:52px}
+.school-row .s-name{font-size:13px;font-weight:500;flex:1}
+.school-row .s-cnt{font-size:11px;color:#6b7a93;white-space:nowrap}
+.school-row .s-badge{background:#fff3ee;color:#e85d26;border:1px solid #f0a080;border-radius:20px;font-size:10px;font-weight:600;padding:2px 7px;white-space:nowrap}
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-nav button{background:none;border:1.5px solid #dde3ed;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px}
+.cal-month{font-size:16px;font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-header{text-align:center;font-size:11px;font-weight:600;color:#6b7a93;padding:4px 0;text-transform:uppercase}
+.cal-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;min-height:52px;padding:4px 2px}
+.cal-day:hover:not(.empty){background:#f0f4fb}
+.cal-day.today{border-color:#1e4d8c}
+.cal-day.has-visits{background:#e8f0fb}
+.cal-day.empty{cursor:default}
+.cal-day.selected-day{border-color:#e85d26;background:#fff3ee}
+.cal-day-num{font-size:12px;font-weight:500;color:#1a2332;line-height:1}
+.cal-day.today .cal-day-num{color:#1e4d8c;font-weight:700}
+.cal-visit-chips{display:flex;flex-direction:column;gap:2px;width:100%;margin-top:3px}
+.cal-chip{font-size:9px;background:#1e4d8c;color:#fff;border-radius:4px;padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+.cal-chip.milestone{background:#e85d26}
+/* SIDE PANEL */
+.cal-layout{display:grid;grid-template-columns:1fr 320px;gap:1rem;align-items:start}
+@media(max-width:680px){.cal-layout{grid-template-columns:1fr}}
+.side-panel{background:#fff;border:1px solid #dde3ed;border-radius:16px;padding:1.25rem;position:sticky;top:72px}
+.side-title{font-size:14px;font-weight:600;margin-bottom:1rem;color:#1e4d8c}
+/* VISIT LIST */
+.visit-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f4f8}
+.visit-item:last-child{border-bottom:none}
+.visit-icon{width:32px;height:32px;background:#e8f0fb;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.visit-info{flex:1;min-width:0}
+.visit-school{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.visit-date{font-size:11px;color:#6b7a93;margin-top:2px}
+/* USER TABLE */
+.user-table{width:100%;border-collapse:collapse;font-size:13px}
+.user-table th{text-align:left;padding:10px 12px;background:#f5f8ff;font-weight:600;font-size:11px;color:#6b7a93;text-transform:uppercase;letter-spacing:.3px}
+.user-table td{padding:10px 12px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
+.tag{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.tag-admin{background:#e8f0fb;color:#1e4d8c}
+.tag-user{background:#f0faf5;color:#1a7a4a}
+.tag-visits{background:#fff3ee;color:#e85d26}
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-box{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:440px}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.5rem}
+.mf{margin-bottom:1rem}
+.mf label{display:block;font-size:12px;font-weight:500;color:#6b7a93;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.modal-actions{display:flex;gap:10px;margin-top:1.5rem}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#1a2332;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+.milestone-alert{background:#fff3ee;border:1.5px solid #e85d26;border-radius:14px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:12px}
+.ma-icon{font-size:22px;flex-shrink:0}
+.ma-text h3{font-size:14px;font-weight:600;color:#c04a1a}
+.ma-text p{font-size:12px;color:#8b4020;margin-top:2px}
+</style>
+
+<div class="app" id="app">
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">
+        <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-width="2" stroke-linecap="round" d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <h1>PresençaEscolar</h1>
+      <p>Sistema de Supervisão</p>
+    </div>
+    <div class="fg"><label>Usuário</label><input type="text" id="loginUser" placeholder="Digite seu usuário" /></div>
+    <div class="fg"><label>Senha</label><input type="password" id="loginPass" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <button class="btn-login" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="loginError">Usuário ou senha incorretos</div>
+    <p style="font-size:11px;color:#9ba8bb;text-align:center;margin-top:1.5rem">Admin: admin / admin123 &nbsp;|&nbsp; Supervisores: super1..super25 / 123456</p>
+  </div>
+</div>
+
+<div id="mainApp" class="hidden">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo"><svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-width="2" stroke-linecap="round" d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div><div class="header-title">PresençaEscolar</div><div class="header-user" id="headerUser"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="badge-role" id="headerRole"></span>
+      <button class="btn-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="nav" id="navBar"></div>
+  <div class="main" id="mainContent"></div>
+</div>
+
+<div id="editModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Editar usuário</div>
+    <div class="mf"><label>Nome completo</label><input type="text" class="ifield" id="modalName" /></div>
+    <div class="mf"><label>Login</label><input type="text" class="ifield" id="modalLogin" /></div>
+    <div class="mf"><label>Nova senha <span style="font-weight:400;text-transform:none;font-size:11px;color:#aab">(em branco = não alterar)</span></label><input type="text" class="ifield" id="modalPass" /></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveUserEdit()">Salvar</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SCHOOLS=[
+  {code:'39962',name:'ADIB MIGUEL HADDAD'},
+  {code:'19744',name:'ADONIRO LADEIRA PROFESSOR'},
+  {code:'19835',name:'ALBERTINA FORTAREL PROFESSORA'},
+  {code:'19549',name:'ALBERTO FERREIRA REZENDE PROFESSOR'},
+  {code:'39974',name:'ALBINO MELO DE OLIVEIRA PROFESSOR'},
+  {code:'435119',name:'ALESSANDRA CRISTINA RODRIGUES DE O PEZZATO PROFA'},
+  {code:'905677',name:'ANA MARIA PAGIOSSI'},
+  {code:'19550',name:'ANA PINTO DUARTE PAES PROFESSORA'},
+  {code:'19537',name:'ANTENOR SOARES GANDRA DOUTOR'},
+  {code:'49499',name:'ANTONIO DUTRA PROFESSOR'},
+  {code:'47259',name:'ARMANDO DIAS'},
+  {code:'910521',name:'ARTHUR RICCI MONSENHOR DOUTOR'},
+  {code:'349124',name:'BAIRRO FAZENDA GRANDE'},
+  {code:'19732',name:'BARAO DE JUNDIAI'},
+  {code:'913078',name:'BENEDICTO LOSCHI'},
+  {code:'19690',name:'BENEDITA ARRUDA PROFESSORA'},
+  {code:'19409',name:'CECILIA ROLEMBERG PORTO GUELLI PROFESSORA'},
+  {code:'19720',name:'CONDE DO PARNAIBA'},
+  {code:'901155',name:'DAGOBERTO ROMAG FREI'},
+  {code:'35993',name:'DEOLINDA COPELLI DE SOUZA LIMA PROFESSORA'},
+  {code:'19859',name:'DIOGENES DUARTE PAES'},
+  {code:'919305',name:'DUILIO MAZIERO'},
+  {code:'19800',name:'ELOY DE MIRANDA CHAVES DOUTOR'},
+  {code:'19896',name:'ELZA FACCA MARTINS BONILHA PROFESSORA'},
+  {code:'19379',name:'FRANCISCO NAPOLEAO MAIA PROFESSOR'},
+  {code:'19501',name:'GABRIEL PAULINO BUENO COUTO BISPO DOM'},
+  {code:'36031',name:'GEORGINA HELENA FORTAREL PROFESSORA'},
+  {code:'19872',name:'GETULIO NOGUEIRA DE SA PROFESSOR'},
+  {code:'900588',name:'HAMILTON JOSE BIANCHI MONSENHOR'},
+  {code:'924465',name:'IDOROTI DE SOUZA ALVAREZ'},
+  {code:'19604',name:'IVONY DE CAMARGO SALLES PROFESSORA'},
+  {code:'19860',name:'JERONIMO DE CAMARGO'},
+  {code:'36006',name:'JOAO BATISTA CURADO PROFESSOR'},
+  {code:'19458',name:'JOAQUIM ANTONIO LADEIRA PROFESSOR'},
+  {code:'925020',name:'JOAQUIM JUSTINO CARREIRA'},
+  {code:'40885',name:'JOCENY VILLELA CURADO PROFESSORA'},
+  {code:'909488',name:'JOSE DE ANCHIETA PADRE'},
+  {code:'19422',name:'JOSE FELICIANO DE OLIVEIRA PROFESSOR'},
+  {code:'19665',name:'JOSE POLLI'},
+  {code:'19434',name:'JOSE SILVA JUNIOR PROFESSOR'},
+  {code:'904090',name:'JURANDYR DE SOUZA LIMA'},
+  {code:'911112',name:'LAVINIA RIBEIRO ARANHA PROFESSORA'},
+  {code:'48297',name:'LUIZ RIVELLI PROFESSOR'},
+  {code:'19653',name:'MANOEL JOSE DA FONSECA'},
+  {code:'19677',name:'MANUEL EUCLIDES DE BRITO'},
+  {code:'919299',name:'MARCOS ALEXANDRE SODRE PROFESSOR'},
+  {code:'909506',name:'MARIA DE ALMEIDA SCHLEDORN PROFESSORA'},
+  {code:'19471',name:'MARIA DE SAO LUIZ IRMA'},
+  {code:'42705',name:'MARIA JOSE MAIA DE TOLEDO PROFA'},
+  {code:'36080',name:'MARIO PEREIRA PINTO'},
+  {code:'45755',name:'MAURILIO TOMANIK PADRE'},
+  {code:'49505',name:'MITIHARU TANAKA'},
+  {code:'19495',name:'NATHANAEL SILVA PROFESSOR'},
+  {code:'901271',name:'ODILON LEITE FERRAZ'},
+  {code:'910533',name:'ORLANDO MAURICIO ZAMBOTTO'},
+  {code:'43539',name:'OROZIMBO SOSTENA PROFESSOR'},
+  {code:'901192',name:'OSCARLINA DE ARAUJO OLIVEIRA PROFESSORA'},
+  {code:'19461',name:'OSWALDO CAMARGO PIRES PROFESSOR'},
+  {code:'19768',name:'PAULO MENDES SILVA'},
+  {code:'901283',name:'PEDRO YOSHICHIKA IRIE'},
+  {code:'915609',name:'PROFESSOR MARCIO BORGES MACHADO'},
+  {code:'19446',name:'PROFESSORA MARIA DE LOURDES DE FRANCA SILVEIRA'},
+  {code:'19823',name:'QUINZE DE OUTUBRO'},
+  {code:'19380',name:'RAFAEL DE OLIVEIRA'},
+  {code:'19781',name:'RAFAEL MAURO DOUTOR'},
+  {code:'19719',name:'SIQUEIRA MORAES'},
+  {code:'10045',name:'TERRA BRASILIS'},
+  {code:'19483',name:'TIBURCIO ESTEVAM DE SIQUEIRA'},
+  {code:'36043',name:'VENERANDO NALINI MONSENHOR'},
+  {code:'910594',name:'VICTOR GERALDO SIMONSEN'},
+  {code:'901222',name:'ZULMIRO ALVES DE SIQUEIRA'}
+];
+
+function defaultUsers(){
+  const u={admin:{pass:'admin123',name:'Administrador',role:'admin'}};
+  for(let i=1;i<=25;i++) u[`super${i}`]={pass:'123456',name:`Supervisor ${i}`,role:'user'};
+  return u;
+}
+let USERS=JSON.parse(localStorage.getItem('peUsers3')||'null')||defaultUsers();
+function saveUsers(){localStorage.setItem('peUsers3',JSON.stringify(USERS))}
+
+let state={
+  currentUser:null,
+  visits:JSON.parse(localStorage.getItem('peVisits3')||'[]'),
+  view:'dashboard',
+  calYear:new Date().getFullYear(),
+  calMonth:new Date().getMonth(),
+  selectedSchoolCode:null,
+  selectedCalDay:null,
+  editingKey:null,
+  schoolSearch:'',
+  regSearch:''
+};
+function saveVisits(){localStorage.setItem('peVisits3',JSON.stringify(state.visits))}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginError');
+  if(USERS[u]&&USERS[u].pass===p){
+    state.currentUser=u;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('headerUser').textContent=USERS[u].name;
+    document.getElementById('headerRole').textContent=USERS[u].role==='admin'?'Administrador':'Supervisor';
+    buildNav();renderView('dashboard');
+  } else {
+    err.style.display='block';setTimeout(()=>err.style.display='none',3000);
+  }
+}
+function doLogout(){
+  state.currentUser=null;
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';
+}
+
+function buildNav(){
+  const isAdmin=USERS[state.currentUser].role==='admin';
+  const tabs=isAdmin?
+    [{id:'dashboard',label:'Painel'},{id:'visits',label:'Visitas'},{id:'calendar',label:'Calendário'},{id:'users',label:'Usuários'},{id:'report',label:'Relatório'}]:
+    [{id:'dashboard',label:'Início'},{id:'calendar',label:'Meu Calendário'},{id:'history',label:'Histórico'}];
+  document.getElementById('navBar').innerHTML=tabs.map(t=>`<button class="nav-btn${state.view===t.id?' active':''}" onclick="renderView('${t.id}')">${t.label}</button>`).join('');
+}
+
+function renderView(v){
+  state.view=v;buildNav();
+  const c=document.getElementById('mainContent');
+  const isAdmin=USERS[state.currentUser].role==='admin';
+  if(v==='dashboard') isAdmin?renderAdminDashboard(c):renderUserDashboard(c);
+  else if(v==='visits') renderAdminVisits(c);
+  else if(v==='calendar') renderCalendar(c);
+  else if(v==='history') renderHistory(c);
+  else if(v==='users') renderUsers(c);
+  else if(v==='report') renderReport(c);
+}
+
+function myVisits(){return state.visits.filter(v=>v.user===state.currentUser)}
+function visitsBySchool(user,code){return state.visits.filter(v=>v.user===user&&v.schoolCode===code).length}
+
+/* ---- DASHBOARD USER ---- */
+function renderUserDashboard(c){
+  const mv=myVisits();
+  const totalV=mv.length;
+  const schoolsDone=new Set(mv.map(v=>v.schoolCode)).size;
+  const milestones=SCHOOLS.filter(s=>visitsBySchool(state.currentUser,s.code)>=3).length;
+  const milestoneAlert=milestones>0?`<div class="milestone-alert"><div class="ma-icon">&#127942;</div><div class="ma-text"><h3>${milestones} escola${milestones>1?'s':''} com 3+ visitas!</h3><p>Ótimo trabalho, continue supervisionando.</p></div></div>`:'';
+  c.innerHTML=`${milestoneAlert}
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${totalV}</div><div class="stat-label">Total de visitas</div></div>
+    <div class="stat-card"><div class="stat-num">${schoolsDone}</div><div class="stat-label">Escolas visitadas</div></div>
+    <div class="stat-card"><div class="stat-num">${milestones}</div><div class="stat-label">Marcos 3 visitas</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Escolas com visitas registradas</div>
+    ${SCHOOLS.filter(s=>visitsBySchool(state.currentUser,s.code)>0).map(s=>{
+      const cnt=visitsBySchool(state.currentUser,s.code);
+      const dots=Array.from({length:Math.max(cnt,3)},(_,i)=>`<div class="dot${i<cnt?(cnt>=3&&i===2?' milestone':' done'):''}"></div>`).join('');
+      return`<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f0f4f8">
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div><div style="font-size:11px;color:#9ba8bb;margin-top:2px">Cód: ${s.code}</div></div>
+        <div style="display:flex;gap:4px">${dots}</div>
+        ${cnt>=3?`<span style="background:#fff3ee;color:#e85d26;border:1px solid #f0a080;border-radius:20px;font-size:10px;font-weight:600;padding:2px 8px">${cnt} visitas</span>`:`<span style="font-size:12px;color:#6b7a93">${cnt}x</span>`}
+      </div>`;
+    }).join('')||'<p style="color:#9ba8bb;font-size:14px">Nenhuma visita ainda. Use Meu Calendário para registrar.</p>'}
+  </div>`;
+}
+
+/* ---- CALENDAR (user: register + view | admin: view all) ---- */
+function renderCalendar(c){
+  const isAdmin=USERS[state.currentUser].role==='admin';
+  const relevant=isAdmin?state.visits:myVisits();
+  const y=state.calYear,m=state.calMonth;
+  const monthName=new Date(y,m,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  const visitsByDay={};
+  relevant.filter(v=>v.date.startsWith(`${y}-${String(m+1).padStart(2,'0')}`)).forEach(v=>{
+    const d=parseInt(v.date.split('-')[2]);
+    if(!visitsByDay[d]) visitsByDay[d]=[];
+    visitsByDay[d].push(v);
+  });
+  const WEEK=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let cells='';
+  for(let i=0;i<first;i++) cells+=`<div class="cal-day empty"></div>`;
+  const today=new Date();
+  for(let d=1;d<=days;d++){
+    const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
+    const vs=visitsByDay[d]||[];
+    const isSelected=state.selectedCalDay===d;
+    const chips=vs.slice(0,2).map(v=>{
+      const cnt=visitsBySchool(v.user,v.schoolCode);
+      return`<div class="cal-chip${cnt>=3?' milestone':''}">${isAdmin?v.userName.split(' ').slice(0,2).join(' '):v.schoolName.substring(0,16)}</div>`;
+    }).join('')+(vs.length>2?`<div style="font-size:9px;color:#1e4d8c;padding:1px 2px">+${vs.length-2}</div>`:'');
+    cells+=`<div class="cal-day${isToday?' today':''}${vs.length?' has-visits':''}${isSelected?' selected-day':''}" onclick="selectCalDay(${d})">
+      <span class="cal-day-num">${d}</span>
+      <div class="cal-visit-chips">${chips}</div>
+    </div>`;
+  }
+
+  const todayStr=new Date().toISOString().split('T')[0];
+  const selDateStr=state.selectedCalDay?`${y}-${String(m+1).padStart(2,'0')}-${String(state.selectedCalDay).padStart(2,'0')}`:null;
+  const selVisits=selDateStr?(isAdmin?state.visits.filter(v=>v.date===selDateStr):myVisits().filter(v=>v.date===selDateStr)):[];
+
+  const sidePanel=`<div class="side-panel">
+    <div class="side-title">${state.selectedCalDay?new Date(selDateStr+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}):'Selecione um dia'}</div>
+    ${!isAdmin&&state.selectedCalDay?`
+    <div style="margin-bottom:12px">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" class="ifield" id="regSearch" placeholder="Buscar escola..." style="padding-left:36px" oninput="filterRegSearch()" value="${state.regSearch}" />
+      </div>
+      <div id="regSchoolList" style="max-height:200px;overflow-y:auto;border:1.5px solid #dde3ed;border-radius:12px;margin-bottom:10px"></div>
+      <button class="btn-success" style="width:100%;font-size:13px;padding:10px" onclick="registerVisitFromCal()">Registrar visita</button>
+    </div>`:''}
+    ${selVisits.length>0?`<div style="border-top:1px solid #f0f4f8;padding-top:10px;margin-top:${!isAdmin&&state.selectedCalDay?'10px':'0'}">
+      <div style="font-size:12px;font-weight:600;color:#6b7a93;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Visitas do dia (${selVisits.length})</div>
+      ${selVisits.map(v=>`<div class="visit-item">
+        <div class="visit-icon" style="font-size:14px">&#127eb;</div>
+        <div class="visit-info">
+          <div class="visit-school">${v.schoolName}</div>
+          <div class="visit-date">${isAdmin?v.userName:''} ${visitsBySchool(v.user,v.schoolCode)>=3?'&#127942;':''}</div>
+        </div>
+        ${!isAdmin?`<button class="btn-danger" style="font-size:11px;padding:5px 9px" onclick="deleteVisit(${v.id})">&#215;</button>`:''}
+      </div>`).join('')}
+    </div>`:(state.selectedCalDay?`<p style="font-size:13px;color:#9ba8bb;text-align:center;padding:1rem 0">Nenhuma visita neste dia</p>`:'')}
+  </div>`;
+
+  c.innerHTML=`<div class="cal-layout">
+    <div>
+      <div class="card" style="margin-bottom:0">
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">&#8249;</button>
+          <span class="cal-month">${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</span>
+          <button onclick="changeMonth(1)">&#8250;</button>
+        </div>
+        <div class="cal-grid">
+          ${WEEK.map(w=>`<div class="cal-header">${w}</div>`).join('')}${cells}
+        </div>
+        ${!isAdmin?`<p style="font-size:12px;color:#9ba8bb;margin-top:12px;text-align:center">Clique num dia para selecionar e registrar uma visita</p>`:''}
+      </div>
+    </div>
+    ${sidePanel}
+  </div>`;
+
+  if(!isAdmin&&state.selectedCalDay) renderRegSchoolList();
+}
+
+window.selectCalDay=function(d){
+  state.selectedCalDay=state.selectedCalDay===d?null:d;
+  state.selectedSchoolCode=null;
+  state.regSearch='';
+  renderView('calendar');
+};
+
+window.filterRegSearch=function(){
+  state.regSearch=document.getElementById('regSearch').value;
+  renderRegSchoolList();
+};
+
+function renderRegSchoolList(){
+  const el=document.getElementById('regSchoolList');
+  if(!el) return;
+  const q=state.regSearch.toLowerCase();
+  const filtered=SCHOOLS.filter(s=>s.name.toLowerCase().includes(q)||s.code.includes(q));
+  el.innerHTML=filtered.slice(0,20).map(s=>{
+    const cnt=visitsBySchool(state.currentUser,s.code);
+    const sel=state.selectedSchoolCode===s.code;
+    return`<div class="school-row${sel?' selected':''}" onclick="pickRegSchool('${s.code}')">
+      <span class="s-code">${s.code}</span>
+      <span class="s-name">${s.name}</span>
+      ${cnt>=3?`<span class="s-badge">&#127942; ${cnt}</span>`:(cnt>0?`<span class="s-cnt">${cnt}x</span>`:'')}
+    </div>`;
+  }).join('')+(filtered.length>20?`<div style="padding:8px 14px;font-size:12px;color:#9ba8bb">+${filtered.length-20} resultados. Refine a busca.</div>`:'');
+}
+
+window.pickRegSchool=function(code){
+  state.selectedSchoolCode=code;
+  renderRegSchoolList();
+};
+
+window.registerVisitFromCal=function(){
+  if(!state.selectedSchoolCode){showToast('Selecione uma escola na lista');return}
+  if(!state.selectedCalDay){showToast('Selecione um dia no calendário');return}
+  const y=state.calYear,m=state.calMonth,d=state.selectedCalDay;
+  const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const school=SCHOOLS.find(s=>s.code===state.selectedSchoolCode);
+  const dt=new Date(dateStr+'T12:00:00');
+  const dup=state.visits.find(v=>v.user===state.currentUser&&v.schoolCode===school.code&&v.date===dateStr);
+  if(dup){showToast('Visita já registrada nessa escola neste dia');return}
+  state.visits.push({
+    id:Date.now(),user:state.currentUser,userName:USERS[state.currentUser].name,
+    schoolCode:school.code,schoolName:school.name,date:dateStr,
+    dayName:dt.toLocaleDateString('pt-BR',{weekday:'long'})
+  });
+  saveVisits();
+  const cnt=visitsBySchool(state.currentUser,school.code);
+  if(cnt===3) showToast('Marco atingido! 3 visitas em '+school.name);
+  else showToast('Visita registrada: '+school.name);
+  state.selectedSchoolCode=null;
+  state.regSearch='';
+  renderView('calendar');
+};
+
+window.changeMonth=function(d){
+  state.calMonth+=d;
+  if(state.calMonth<0){state.calMonth=11;state.calYear--}
+  if(state.calMonth>11){state.calMonth=0;state.calYear++}
+  state.selectedCalDay=null;
+  renderView('calendar');
+};
+
+/* ---- HISTORY ---- */
+function renderHistory(c){
+  const mv=myVisits().slice().reverse();
+  const q=(state.schoolSearch||'').toLowerCase();
+  const filtered=q?mv.filter(v=>v.schoolName.toLowerCase().includes(q)||v.schoolCode.includes(q)):mv;
+  c.innerHTML=`<div class="card">
+    <div class="card-title">Histórico de visitas</div>
+    <div class="search-box" style="margin-bottom:12px">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" class="ifield" id="histSearch" placeholder="Buscar escola..." style="padding-left:36px" oninput="filterHistory()" value="${state.schoolSearch||''}" />
+    </div>
+    ${filtered.length===0?'<p style="color:#9ba8bb;font-size:14px">Nenhuma visita encontrada</p>':
+    filtered.map(v=>`<div class="visit-item">
+      <div class="visit-icon" style="font-size:14px">&#127eb;</div>
+      <div class="visit-info">
+        <div class="visit-school">${v.schoolName}</div>
+        <div class="visit-date">${new Date(v.date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})} &bull; Cód: ${v.schoolCode}</div>
+      </div>
+      <button class="btn-danger" style="font-size:11px;padding:5px 9px" onclick="deleteVisit(${v.id})">&#215;</button>
+    </div>`).join('')}
+  </div>`;
+}
+window.filterHistory=function(){
+  state.schoolSearch=document.getElementById('histSearch').value;
+  renderHistory(document.getElementById('mainContent'));
+};
+
+function deleteVisit(id){
+  state.visits=state.visits.filter(v=>v.id!==id);saveVisits();
+  renderView(state.view);showToast('Visita removida');
+}
+
+/* ---- ADMIN DASHBOARD ---- */
+function renderAdminDashboard(c){
+  const total=state.visits.length;
+  const users=new Set(state.visits.map(v=>v.user)).size;
+  const schools=new Set(state.visits.map(v=>v.schoolCode)).size;
+  const today=new Date().toISOString().split('T')[0];
+  const todayCount=state.visits.filter(v=>v.date===today).length;
+  c.innerHTML=`
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total de visitas</div></div>
+    <div class="stat-card"><div class="stat-num">${users}</div><div class="stat-label">Supervisores ativos</div></div>
+    <div class="stat-card"><div class="stat-num">${schools}</div><div class="stat-label">Escolas visitadas</div></div>
+    <div class="stat-card"><div class="stat-num">${todayCount}</div><div class="stat-label">Visitas hoje</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Top escolas mais visitadas</div>
+    ${SCHOOLS.map(s=>({s,cnt:state.visits.filter(v=>v.schoolCode===s.code).length})).filter(x=>x.cnt>0).sort((a,b)=>b.cnt-a.cnt).slice(0,10).map(({s,cnt})=>{
+      const pct=total>0?Math.round(cnt/total*100):0;
+      return`<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">${s.name}</span>
+          <span style="color:#6b7a93;flex-shrink:0">${cnt} visita${cnt!==1?'s':''}</span>
+        </div>
+        <div style="background:#f0f4f8;border-radius:4px;height:6px"><div style="background:#1e4d8c;height:6px;border-radius:4px;width:${pct}%"></div></div>
+      </div>`;
+    }).join('')||'<p style="color:#9ba8bb;font-size:14px">Nenhuma visita ainda</p>'}
+  </div>`;
+}
+
+/* ---- ADMIN VISITS ---- */
+function renderAdminVisits(c){
+  const last=state.visits.slice().reverse().slice(0,40);
+  c.innerHTML=`<div class="card">
+    <div class="card-title">Últimas visitas (${state.visits.length} total)</div>
+    ${last.length===0?'<p style="color:#9ba8bb;font-size:14px">Nenhuma visita ainda</p>':
+    last.map(v=>`<div class="visit-item">
+      <div class="visit-icon" style="font-size:14px">&#127eb;</div>
+      <div class="visit-info">
+        <div class="visit-school">${v.schoolName}</div>
+        <div class="visit-date">${v.userName} &bull; ${new Date(v.date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</div>
+      </div>
+      <button class="btn-danger" style="font-size:11px;padding:5px 9px" onclick="deleteVisit(${v.id})">&#215;</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ---- USERS ---- */
+function renderUsers(c){
+  c.innerHTML=`<div class="card">
+    <div class="card-title">Usuários do sistema</div>
+    <div style="overflow-x:auto"><table class="user-table">
+      <thead><tr><th>Login</th><th>Nome</th><th>Perfil</th><th>Visitas</th><th style="text-align:right">Ações</th></tr></thead>
+      <tbody id="usersBody"></tbody>
+    </table></div>
+  </div>`;
+  renderUsersBody();
+}
+function renderUsersBody(){
+  const body=document.getElementById('usersBody');
+  if(!body) return;
+  body.innerHTML=Object.entries(USERS).map(([key,d])=>{
+    const vc=state.visits.filter(v=>v.user===key).length;
+    const isAdm=d.role==='admin';
+    return`<tr>
+      <td style="font-family:monospace;font-size:12px;color:#1e4d8c">${key}</td>
+      <td style="font-weight:500">${d.name}</td>
+      <td><span class="tag tag-${d.role}">${isAdm?'Admin':'Supervisor'}</span></td>
+      <td><span class="tag tag-visits">${vc}</span></td>
+      <td style="text-align:right">${!isAdm?`<button class="btn-edit" onclick="openEditModal('${key}')">Editar</button>`:'<span style="color:#ccc;font-size:12px">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+window.openEditModal=function(key){
+  state.editingKey=key;
+  const u=USERS[key];
+  document.getElementById('modalTitle').textContent='Editar: '+u.name;
+  document.getElementById('modalName').value=u.name;
+  document.getElementById('modalLogin').value=key;
+  document.getElementById('modalPass').value='';
+  document.getElementById('editModal').classList.remove('hidden');
+};
+window.closeModal=function(){document.getElementById('editModal').classList.add('hidden');state.editingKey=null;};
+window.saveUserEdit=function(){
+  const oldKey=state.editingKey;if(!oldKey) return;
+  const newName=document.getElementById('modalName').value.trim();
+  const newLogin=document.getElementById('modalLogin').value.trim();
+  const newPass=document.getElementById('modalPass').value.trim();
+  if(!newName){showToast('Nome não pode ser vazio');return}
+  if(!newLogin){showToast('Login não pode ser vazio');return}
+  if(!/^[a-zA-Z0-9_]+$/.test(newLogin)){showToast('Login: use apenas letras, números e _');return}
+  if(newLogin!==oldKey&&USERS[newLogin]){showToast('Login já em uso');return}
+  const userData={...USERS[oldKey],name:newName};
+  if(newPass) userData.pass=newPass;
+  if(newLogin!==oldKey){
+    delete USERS[oldKey];USERS[newLogin]=userData;
+    state.visits=state.visits.map(v=>v.user===oldKey?{...v,user:newLogin,userName:newName}:v);
+    if(state.currentUser===oldKey) state.currentUser=newLogin;
+  } else {
+    USERS[oldKey]=userData;
+    state.visits=state.visits.map(v=>v.user===oldKey?{...v,userName:newName}:v);
+  }
+  saveVisits();saveUsers();closeModal();showToast('Usuário atualizado!');renderUsersBody();
+};
+
+/* ---- REPORT ---- */
+function renderReport(c){
+  c.innerHTML=`<div class="card">
+    <div class="card-title">Relatório de visitas</div>
+    <p style="font-size:14px;color:#6b7a93;margin-bottom:1.5rem">Relatório completo em Excel com todas as visitas registradas.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.5rem">
+      <div class="stat-card" style="flex:1;min-width:120px"><div class="stat-num">${state.visits.length}</div><div class="stat-label">Registros</div></div>
+      <div class="stat-card" style="flex:1;min-width:120px"><div class="stat-num">${new Set(state.visits.map(v=>v.user)).size}</div><div class="stat-label">Supervisores</div></div>
+      <div class="stat-card" style="flex:1;min-width:120px"><div class="stat-num">${new Set(state.visits.map(v=>v.schoolCode)).size}</div><div class="stat-label">Escolas</div></div>
+    </div>
+    <button class="btn-download" onclick="downloadExcel()">&#11015; Baixar relatório Excel</button>
+  </div>`;
+}
+
+window.downloadExcel=function(){
+  if(!window.XLSX){showToast('Aguarde a biblioteca carregar...');return}
+  const schoolVisitCount={};
+  state.visits.forEach(v=>{
+    const key=v.user+'|'+v.schoolCode;
+    schoolVisitCount[key]=(schoolVisitCount[key]||0)+1;
+  });
+  const data=[['Nome do Supervisor','Data da Visita','Dia da Semana','Código da Escola','Nome da Escola','Quantidade de Visitas na Escola']];
+  state.visits.forEach(v=>{
+    const dt=new Date(v.date+'T12:00:00');
+    const key=v.user+'|'+v.schoolCode;
+    data.push([v.userName,dt.toLocaleDateString('pt-BR'),v.dayName,v.schoolCode,v.schoolName,schoolVisitCount[key]]);
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:26},{wch:16},{wch:18},{wch:14},{wch:46},{wch:28}];
+  XLSX.utils.book_append_sheet(wb,ws,'Visitas');
+  const sum=[['Código','Escola','Total de Visitas']];
+  SCHOOLS.forEach(s=>sum.push([s.code,s.name,state.visits.filter(v=>v.schoolCode===s.code).length]));
+  const ws2=XLSX.utils.aoa_to_sheet(sum);
+  ws2['!cols']=[{wch:12},{wch:48},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumo por Escola');
+  XLSX.writeFile(wb,`relatorio_visitas_${new Date().toISOString().split('T')[0]}.xlsx`);
+  showToast('Relatório exportado!');
+};
+
+window.deleteVisit=deleteVisit;
+window.renderView=renderView;
+window.doLogin=doLogin;
+window.doLogout=doLogout;
+</script>
