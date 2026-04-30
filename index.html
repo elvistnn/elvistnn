@@ -343,7 +343,21 @@ async function doLogin(){
         pass
       );
 
-    state.currentUser = userCredential.user.uid;
+    const snapshot = await window.firebaseFunctions.get(
+      window.firebaseFunctions.ref(window.db,'users')
+    );
+
+    if(snapshot.exists()){
+      USERS = snapshot.val();
+    }
+
+    const uid = userCredential.user.uid;
+
+    const userKey = Object.keys(USERS).find(
+      key => USERS[key].uid === uid
+    );
+
+    state.currentUser = userKey;
 
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
